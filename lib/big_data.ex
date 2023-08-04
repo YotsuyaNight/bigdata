@@ -1,4 +1,6 @@
 defmodule BigData do
+  @type kevyal :: {String | Symbol, any}
+
   @moduledoc """
   Documentation for `BigData`.
   """
