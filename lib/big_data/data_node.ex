@@ -6,8 +6,8 @@ defmodule BigData.DataNode do
 
   # Clients
 
-  def start_link do
-    GenServer.start_link(__MODULE__, nil)
+  def start_link(name \\ nil) do
+    GenServer.start_link(__MODULE__, nil, [name: name])
   end
 
   @spec map(pid, mapper, any) :: [BigData.keyval]
@@ -18,6 +18,11 @@ defmodule BigData.DataNode do
   @spec reduce(pid, reducer, any) :: [BigData.keyval]
   def reduce(pid, reduce, data) do
     GenServer.call(pid, {:reduce, reduce, data})
+  end
+
+  @spec process(pid, (any -> list), (list -> list), any) :: list
+  def process(pid, map, reduce, data) do
+    reduce(pid, reduce, map(pid, map, data))
   end
 
   # Server (callbacks)
@@ -39,9 +44,5 @@ defmodule BigData.DataNode do
   def handle_call({:reduce, reduce, data}, _from, _state) do
     result = reduce.(data)
     {:reply, result, nil}
-  end
-
-  def data do
-    "qwe asd zxc qwe asd zxc qwe asd zxc asd zxc asd zxc asd zxc asd zxc zxc zxc zxc zxc zxc"
   end
 end
