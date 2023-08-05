@@ -12,17 +12,24 @@ defmodule BigData.DataNode do
 
   @spec map(pid, mapper, any) :: [BigData.keyval]
   def map(pid, map, data) do
-    GenServer.call(pid, {:map, map, data})
+    GenServer.call(pid, {:map, map, data}, :infinity)
   end
 
   @spec reduce(pid, reducer, any) :: [BigData.keyval]
   def reduce(pid, reduce, data) do
-    GenServer.call(pid, {:reduce, reduce, data})
+    GenServer.call(pid, {:reduce, reduce, data}, :infinity)
   end
 
-  @spec process(pid, (any -> list), (list -> list), any) :: list
+  @spec process(pid, mapper, reducer, any) :: list
   def process(pid, map, reduce, data) do
     reduce(pid, reduce, map(pid, map, data))
+  end
+
+  def process_file(pid, map, reduce, path) do
+    File.stream!(path)
+      |> Stream.chunk_every(50000)
+      |> Stream.flat_map(fn chunk -> reduce(pid, reduce, map(pid, map, Enum.join(chunk, ""))) end)
+      |> reduce.()
   end
 
   # Server (callbacks)
