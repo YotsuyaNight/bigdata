@@ -24,11 +24,10 @@ defmodule BigData.Worker do
 
   @impl true
   @spec handle_call({:map_reduce, BigData.mapper(), BigData.reducer(), Stream}, any, any) :: {:reply, [BigData.keyval()], any}
-  def handle_call({:map_reduce, map, reduce, stream}, _from, _state) do
+  def handle_call({:map_reduce, map, reduce, chunk}, _from, _state) do
     result =
-      stream
-      |> Stream.flat_map(&Enum.map(&1, map))
-      |> Stream.flat_map(&reduce.(&1))
+      chunk
+      |> Enum.flat_map(&map.(&1))
       |> reduce.()
 
     {:reply, result, nil}

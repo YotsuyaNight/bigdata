@@ -7,8 +7,8 @@ defmodule BigData.DataNode do
     GenServer.start_link(__MODULE__, nil, name: name)
   end
 
-  def process_stream(pid, map, reduce, stream) do
-    GenServer.call(pid, {:process_stream, map, reduce, stream}, :infinity)
+  def process_stream(pid, map, reduce, filename) do
+    GenServer.call(pid, {:process_stream, map, reduce, filename}, :infinity)
   end
 
   # Server (callbacks)
@@ -19,19 +19,30 @@ defmodule BigData.DataNode do
   end
 
   @impl true
-  def handle_call({:process_stream, map, reduce, stream}, _from, _state) do
+  def handle_call({:process_stream, map, reduce, filename}, _from, _state) do
     n = :erlang.system_info(:logical_processors_available)
 
     task_list =
       for i <- 0..(n - 1) do
-        partial_stream = chunk_stream(stream, i, n, 1000)
-        Task.async(fn ->
-          {_, worker} = BigData.Worker.start_link()
-          IO.puts("Spawned a worker #{inspect(worker)}")
-          result = BigData.Worker.map_reduce(worker, map, reduce, partial_stream)
-          BigData.Worker.stop(worker)
-          result
-        end)
+        partial_stream = chunk_stream(filename, i, n, 10)
+
+        IO.puts("Initializing Task ##{i}")
+
+        task =
+          Task.async(fn ->
+            partial_stream
+            |> Stream.flat_map(fn chunk ->
+              {_, worker} = BigData.Worker.start_link()
+              # IO.puts("Spawned a worker #{inspect(worker)} for Task #{i}")
+              result = BigData.Worker.map_reduce(worker, map, reduce, chunk)
+              BigData.Worker.stop(worker)
+              result
+            end)
+            |> reduce.()
+          end)
+
+        IO.puts("Task ##{i} started")
+        task
       end
 
     result =
@@ -42,8 +53,10 @@ defmodule BigData.DataNode do
     {:reply, result, nil}
   end
 
-  defp chunk_stream(stream, i, n, size) do
-    stream
+  defp chunk_stream(filename, i, n, size) do
+    IO.puts("Chunking on file: #{i}/#{n}")
+
+    File.stream!(filename)
     |> Stream.drop(i)
     |> Stream.take_every(n)
     |> Stream.chunk_every(size)

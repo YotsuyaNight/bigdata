@@ -21,5 +21,5 @@ defmodule BigData.Examples do
 end
 
 # BigData.Supervisor.start_link
-# f = File.stream!(BigData.Examples.big_file)
+# f = File.stream!(BigData.Examples.small_file)
 # BigData.measure(&BigData.DataNode.process_stream/4, [:master, &BigData.Examples.map/1, &BigData.Examples.reduce/1, f])
