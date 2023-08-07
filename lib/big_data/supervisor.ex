@@ -9,6 +9,10 @@ defmodule BigData.Supervisor do
   def init(:ok) do
     children = [
       %{
+        id: :cluster,
+        start: {BigData.Cluster, :start_link, [:cluster]}
+      },
+      %{
         id: :master,
         start: {BigData.DataNode, :start_link, [:master]}
       }

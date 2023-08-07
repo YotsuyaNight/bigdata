@@ -5,6 +5,8 @@ defmodule BigData.Examples do
 
   def big_file, do: "C:\\dev\\data2.txt"
 
+  def massive_file, do: "C:\\dev\\data3.txt"
+
   def inline_data, do: "qwe asd zxc qwe asd zxc qwe asd zxc asd zxc asd zxc asd zxc zxc zxc zxc"
 
   def map(data) do
@@ -21,5 +23,6 @@ defmodule BigData.Examples do
 end
 
 # BigData.Supervisor.start_link
-# f = File.stream!(BigData.Examples.small_file)
-# BigData.measure(&BigData.DataNode.process_stream/4, [:master, &BigData.Examples.map/1, &BigData.Examples.reduce/1, f])
+# BigData.measure(&BigData.DataNode.process_stream/4, [:master, &BigData.Examples.map/1, &BigData.Examples.reduce/1, BigData.Examples.massive_file])
+# BigData.measure(&BigData.Cluster.map_reduce/5, [:cluster, nodes, &BigData.Examples.map/1, &BigData.Examples.reduce/1, BigData.Examples.big_file])
+# BigData.Examples.big_file

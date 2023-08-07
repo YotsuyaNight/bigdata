@@ -21,24 +21,27 @@ defmodule BigData.DataNode do
   @impl true
   def handle_call({:process_stream, map, reduce, filename}, _from, _state) do
     n = :erlang.system_info(:logical_processors_available)
+    # n = 4
 
     task_list =
       for i <- 0..(n - 1) do
-        partial_stream = chunk_stream(filename, i, n, 10)
-
-        IO.puts("Initializing Task ##{i}")
+        partial_stream = chunk_stream(filename, i, n, 100)
 
         task =
           Task.async(fn ->
-            partial_stream
-            |> Stream.flat_map(fn chunk ->
-              {_, worker} = BigData.Worker.start_link()
-              # IO.puts("Spawned a worker #{inspect(worker)} for Task #{i}")
-              result = BigData.Worker.map_reduce(worker, map, reduce, chunk)
-              BigData.Worker.stop(worker)
-              result
-            end)
-            |> reduce.()
+            result =
+              partial_stream
+              |> Stream.flat_map(fn chunk ->
+                {_, worker} = BigData.Worker.start_link()
+                # IO.puts("Spawned a worker #{inspect(worker)} for Task #{i}")
+                result = BigData.Worker.map_reduce(worker, map, reduce, chunk)
+                BigData.Worker.stop(worker)
+                result
+              end)
+              |> reduce.()
+
+            IO.puts("Task ##{i} finished")
+            result
           end)
 
         IO.puts("Task ##{i} started")
@@ -54,8 +57,6 @@ defmodule BigData.DataNode do
   end
 
   defp chunk_stream(filename, i, n, size) do
-    IO.puts("Chunking on file: #{i}/#{n}")
-
     File.stream!(filename)
     |> Stream.drop(i)
     |> Stream.take_every(n)
