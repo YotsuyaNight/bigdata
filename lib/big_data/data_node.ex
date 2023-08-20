@@ -1,5 +1,6 @@
 defmodule BigData.DataNode do
   use GenServer
+  require Logger
 
   # Clients
 
@@ -33,18 +34,18 @@ defmodule BigData.DataNode do
               partial_stream
               |> Stream.flat_map(fn chunk ->
                 {_, worker} = BigData.Worker.start_link()
-                # IO.puts("Spawned a worker #{inspect(worker)} for Task #{i}")
+                # Logger.info("Spawned a worker #{inspect(worker)} for Task #{i}")
                 result = BigData.Worker.map_reduce(worker, map, reduce, chunk)
                 BigData.Worker.stop(worker)
                 result
               end)
               |> reduce.()
 
-            IO.puts("Task ##{i} finished")
+            Logger.info("Task ##{i} finished")
             result
           end)
 
-        IO.puts("Task ##{i} started")
+        Logger.info("Task ##{i} started")
         task
       end
 

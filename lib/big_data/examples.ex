@@ -9,6 +9,8 @@ defmodule BigData.Examples do
 
   def inline_data, do: "qwe asd zxc qwe asd zxc qwe asd zxc asd zxc asd zxc asd zxc zxc zxc zxc"
 
+  def error, do: raise "This is an error"
+
   def map(data) do
     data
       |> String.split
