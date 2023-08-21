@@ -2,6 +2,7 @@ defmodule BigData.ParallelRunner do
   @default_options [max_restarts: 1, max_seconds: 60 * 60 * 24]
 
   def run(tasks, options \\ @default_options) when is_list(tasks) and is_list(options) do
+    caller_pid = self()
     {_, task_supervisor} =
       Task.Supervisor.start_link(
         max_restarts: options[:max_restarts] || @default_options[:max_restarts],
@@ -13,7 +14,10 @@ defmodule BigData.ParallelRunner do
       fn task ->
         Task.Supervisor.start_child(
           task_supervisor,
-          task,
+          fn ->
+            result = task.()
+            send(caller_pid, {:result, result})
+          end,
           restart: :transient
         )
       end

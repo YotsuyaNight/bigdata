@@ -22,15 +22,13 @@ defmodule BigData.Cluster do
 
   @impl true
   def handle_call({:map_reduce, nodes, map, reduce, filename}, _from, _state) do
-    self_pid = self()
-
     tasks = for {node, i} <- Enum.with_index(nodes) do
       fn ->
         Logger.info("Node ##{i} started")
         result = :rpc.call(node, :"Elixir.BigData.DataNode", :process_stream, [:data_node, map, reduce, filename], :infinity)
         case result do
           {:badrpc, error} -> raise BigData.Exception, message: "Entire cluster errored out", error: error
-          _ -> send(self_pid, {:result, result})
+          _ -> result
         end
       end
     end

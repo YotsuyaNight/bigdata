@@ -22,9 +22,7 @@ defmodule BigData.DataNode do
 
   @impl true
   def handle_call({:process_stream, map, reduce, filename}, _from, _state) do
-    # n = :erlang.system_info(:logical_processors_available)
-    n = 2
-    self_pid = self()
+    n = :erlang.system_info(:logical_processors_available)
 
     tasks =
       for i <- 0..(n - 1) do
@@ -37,7 +35,6 @@ defmodule BigData.DataNode do
             partial_stream
             |> Stream.flat_map(fn chunk ->
               {_, worker} = BigData.Worker.start_link()
-              # Logger.info("Spawned a worker #{inspect(worker)} for Task #{i}")
               result = BigData.Worker.map_reduce(worker, map, reduce, chunk)
               BigData.Worker.stop(worker)
               result
@@ -46,7 +43,7 @@ defmodule BigData.DataNode do
 
           Logger.info("Task ##{i} finished")
 
-          send(self_pid, {:result, result})
+          result
         end
       end
 

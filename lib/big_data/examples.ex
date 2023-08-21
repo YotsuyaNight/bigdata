@@ -18,8 +18,8 @@ defmodule BigData.Examples do
   end
 
   def reduce(data) do
-    :timer.sleep(1500)
-    raise "Something wrong happend"
+    # :timer.sleep(1500)
+    # raise "Something wrong happend"
     data
       |> Enum.group_by(&(elem(&1, 0)))
       |> Enum.map(fn {k, v} -> {k, Enum.reduce(v, 0, fn (x, acc) -> acc + elem(x, 1) end)} end)
