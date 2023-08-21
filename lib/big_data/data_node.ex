@@ -24,35 +24,37 @@ defmodule BigData.DataNode do
   def handle_call({:process_stream, map, reduce, filename}, _from, _state) do
     # n = :erlang.system_info(:logical_processors_available)
     n = 2
+    self_pid = self()
 
-    task_list =
+    tasks =
       for i <- 0..(n - 1) do
-        partial_stream = chunk_stream(filename, i, n, 100)
+        fn ->
+          Logger.info("Task ##{i} started")
 
-        task =
-          Task.async(fn ->
-            result =
-              partial_stream
-              |> Stream.flat_map(fn chunk ->
-                {_, worker} = BigData.Worker.start_link()
-                # Logger.info("Spawned a worker #{inspect(worker)} for Task #{i}")
-                result = BigData.Worker.map_reduce(worker, map, reduce, chunk)
-                BigData.Worker.stop(worker)
-                result
-              end)
-              |> reduce.()
+          partial_stream = chunk_stream(filename, i, n, 100)
 
-            Logger.info("Task ##{i} finished")
-            result
-          end)
+          result =
+            partial_stream
+            |> Stream.flat_map(fn chunk ->
+              {_, worker} = BigData.Worker.start_link()
+              # Logger.info("Spawned a worker #{inspect(worker)} for Task #{i}")
+              result = BigData.Worker.map_reduce(worker, map, reduce, chunk)
+              BigData.Worker.stop(worker)
+              result
+            end)
+            |> reduce.()
 
-        Logger.info("Task ##{i} started")
-        task
+          Logger.info("Task ##{i} finished")
+
+          send(self_pid, {:result, result})
+        end
       end
 
+    partial_results = BigData.ParallelRunner.run(tasks)
+
     result =
-      task_list
-      |> Enum.flat_map(&Task.await(&1, :infinity))
+      partial_results
+      |> List.flatten()
       |> reduce.()
 
     {:reply, result, nil}

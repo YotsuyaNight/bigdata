@@ -22,30 +22,22 @@ defmodule BigData.Cluster do
 
   @impl true
   def handle_call({:map_reduce, nodes, map, reduce, filename}, _from, _state) do
-    {_, task_supervisor} = Task.Supervisor.start_link(max_restarts: 2)
     self_pid = self()
 
-    for {node, i} <- Enum.with_index(nodes) do
-      Task.Supervisor.start_child(
-        task_supervisor,
-        fn ->
-          Logger.info("Node ##{i} started")
-          result = :rpc.call(node, :"Elixir.BigData.DataNode", :process_stream, [:data_node, map, reduce, filename], :infinity)
-          case result do
-            {:badrpc, error} -> raise BigData.Exception, message: "Entire cluster errored out", error: error
-            _ -> send(self_pid, {:result, result})
-          end
-        end,
-        restart: :transient
-      )
+    tasks = for {node, i} <- Enum.with_index(nodes) do
+      fn ->
+        Logger.info("Node ##{i} started")
+        result = :rpc.call(node, :"Elixir.BigData.DataNode", :process_stream, [:data_node, map, reduce, filename], :infinity)
+        case result do
+          {:badrpc, error} -> raise BigData.Exception, message: "Entire cluster errored out", error: error
+          _ -> send(self_pid, {:result, result})
+        end
+      end
     end
 
-    task_list = for _ <- 1..length(nodes) do
-      Logger.info("Awaiting receives")
-      receive do {:result, result} -> result end
-    end
+    partial_results = BigData.ParallelRunner.run(tasks)
 
-    result = task_list |> Enum.flat_map(&(&1)) |> reduce.()
+    result = partial_results |> List.flatten |> reduce.()
 
     {:reply, result, nil}
   end

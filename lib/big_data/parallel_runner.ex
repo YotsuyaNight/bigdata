@@ -1,6 +1,12 @@
 defmodule BigData.ParallelRunner do
-  def run(tasks, options \\ [max_restarts: 2]) when is_list(tasks) and is_list(options) do
-    {_, task_supervisor} = Task.Supervisor.start_link(max_restarts: options[:max_restarts] || 2)
+  @default_options [max_restarts: 1, max_seconds: 60 * 60 * 24]
+
+  def run(tasks, options \\ @default_options) when is_list(tasks) and is_list(options) do
+    {_, task_supervisor} =
+      Task.Supervisor.start_link(
+        max_restarts: options[:max_restarts] || @default_options[:max_restarts],
+        max_seconds: options[:max_seconds] || @default_options[:max_seconds]
+      )
 
     Enum.each(
       tasks,
