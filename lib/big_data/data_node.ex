@@ -4,8 +4,8 @@ defmodule BigData.DataNode do
 
   # Clients
 
-  def start_link(name \\ nil) do
-    GenServer.start_link(__MODULE__, nil, name: name)
+  def start_link(args) do
+    GenServer.start_link(__MODULE__, nil, args)
   end
 
   def process_stream(pid, map, reduce, filename) do
@@ -16,13 +16,14 @@ defmodule BigData.DataNode do
 
   @impl true
   def init(_args) do
+    Logger.info("Starting #{__MODULE__}")
     {:ok, nil}
   end
 
   @impl true
   def handle_call({:process_stream, map, reduce, filename}, _from, _state) do
-    n = :erlang.system_info(:logical_processors_available)
-    # n = 4
+    # n = :erlang.system_info(:logical_processors_available)
+    n = 2
 
     task_list =
       for i <- 0..(n - 1) do

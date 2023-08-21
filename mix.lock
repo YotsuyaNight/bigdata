@@ -1,0 +1,3 @@
+%{
+  "sync_primitives": {:hex, :sync_primitives, "0.2.0", "b911c3f629c3b996f4ca713c61982e65fc4e71bd52c5e70e41c312a938bd4c56", [:mix], [], "hexpm", "e8453175ad71c0d133342af13a0d212973c98c5185a393628def331e776b5127"},
+}

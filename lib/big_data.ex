@@ -9,7 +9,7 @@ defmodule BigData do
   @impl true
   def start(_type, _args) do
     Logger.info("Starting application on node: #{Node.self()}")
-    BigData.Supervisor.start_link
+    BigData.AppSupervisor.start_link
     {:ok, self()}
   end
 
@@ -25,7 +25,7 @@ defmodule BigData do
 
   @spec test(any, any) :: any
   def test(nodes, filename) do
-    # BigData.measure(&BigData.Cluster.map_reduce/5, [:cluster, nodes, &BigData.Examples.map/1, &BigData.Examples.reduce/1, filename])
-    BigData.measure(&BigData.Cluster.map_reduce/5, [:cluster, nodes, fn _x -> 1 / 0 end, &BigData.Examples.reduce/1, filename])
+    BigData.measure(&BigData.Cluster.map_reduce/5, [:cluster, nodes, &BigData.Examples.map/1, &BigData.Examples.reduce/1, filename])
+    # BigData.measure(&BigData.Cluster.map_reduce/5, [:cluster, nodes, fn _x -> 1 / 0 end, &BigData.Examples.reduce/1, filename])
   end
 end
