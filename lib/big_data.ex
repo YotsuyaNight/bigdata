@@ -23,12 +23,12 @@ defmodule BigData do
     result
   end
 
-  def test(filename) do
+  def test(filename, nodes) do
     BigData.measure(
       &BigData.Cluster.map_reduce/5,
       [
         :cluster,
-        [:bigdata@master, :bigdata@node1, :bigdata@node2, :bigdata@node3],
+        nodes || [:bigdata@master, :bigdata@node1, :bigdata@node2, :bigdata@node3],
         &BigData.Examples.WordCount.map/1,
         &BigData.Examples.WordCount.reduce/1,
         filename

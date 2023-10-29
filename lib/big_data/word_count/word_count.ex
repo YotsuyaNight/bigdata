@@ -13,9 +13,4 @@ defmodule BigData.Examples.WordCount do
     |> Enum.reduce(%{}, fn {k, v}, a -> Map.put(a, k, (a[k] || 0) + v) end)
     |> Enum.map(fn {k, v} -> {k, v} end)
   end
-
-  def delayed_crash do
-    :timer.sleep(1000)
-    raise "Crashing"
-  end
 end
