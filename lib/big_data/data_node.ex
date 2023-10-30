@@ -27,7 +27,7 @@ defmodule BigData.DataNode do
     if false do
       result =
         File.stream!(filename)
-        |> Stream.chunk_every(1000)
+        |> Stream.chunk_every(100)
         |> Stream.chunk_every(n)
         |> Enum.flat_map(fn blocks ->
           blocks
