@@ -29,8 +29,8 @@ defmodule BigData do
       [
         :cluster,
         nodes || [:bigdata@master, :bigdata@node1, :bigdata@node2, :bigdata@node3],
-        &BigData.Examples.WordCount.map/1,
-        &BigData.Examples.WordCount.reduce/1,
+        &BigData.Examples.Segmentation.map/1,
+        &BigData.Examples.Segmentation.reduce/1,
         filename
       ]
     )
