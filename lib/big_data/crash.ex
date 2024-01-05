@@ -1,6 +1,6 @@
 defmodule BigData.Crash do
   @filepath "/tmp/crash_counter.txt"
-  @crash_freq 100
+  @crash_freq 2
 
   def attempt do
     value = :rand.uniform(@crash_freq)

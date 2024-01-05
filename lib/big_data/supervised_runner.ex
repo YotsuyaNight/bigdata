@@ -1,5 +1,5 @@
 defmodule BigData.SupervisedRunner do
-  @default_options [max_restarts: 1000, max_seconds: 1]
+  @default_options [max_restarts: 1_000_000, max_seconds: 1]
 
   def spawn_supervisor(options \\ @default_options) when is_list(options) do
     {_, task_supervisor} =

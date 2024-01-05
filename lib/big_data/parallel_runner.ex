@@ -1,5 +1,5 @@
 defmodule BigData.ParallelRunner do
-  @default_options [max_restarts: 1000, max_seconds: 1]
+  @default_options [max_restarts: 1_000_000, max_seconds: 1]
 
   def run(tasks, options \\ @default_options) when is_list(tasks) and is_list(options) do
     caller_pid = self()
